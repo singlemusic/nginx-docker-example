@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.singlemusic.example</groupId>
+    <artifactId>nginx-docker-example</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <name>nginx-docker-example</name>
+    <description>Example demonstrating maven project structure for docker builds</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <docker.verbose>true</docker.verbose>
+        <docker.plugin.version>0.23.0</docker.plugin.version>
+        
+        <docker.image.name>${project.artifactId}</docker.image.name>
+        <docker.network.name>local-network</docker.network.name>
+
+        <docker.build.label.build_date>1970-01-01T00:00:00Z</docker.build.label.build_date>
+        <docker.build.label.vcs_url>local</docker.build.label.vcs_url>
+        <docker.build.label.vcs_ref>local</docker.build.label.vcs_ref>
+        <docker.build.label.vendor>single music</docker.build.label.vendor>
+        <docker.build.label.version>local</docker.build.label.version>
+        <docker.build.label.schema_version>1.0</docker.build.label.schema_version>
+    </properties>
+
+    <build>
+        <plugins>
+            <!-- tag::docker[] -->
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker.plugin.version}</version>
+
+                <configuration>
+                    <images>
+                        <image>
+                            <name>${docker.image.name}</name>
+                            <alias>${project.artifactId}</alias>
+                            <build>
+                                <args>
+                                    <ARTIFACT_ID>${project.artifactId}</ARTIFACT_ID>
+                                    <BUILD_DATE>${docker.build.label.build_date}</BUILD_DATE>
+                                    <VCS_URL>${docker.build.label.vcs_url}</VCS_URL>
+                                    <VCS_REF>${docker.build.label.vcs_ref}</VCS_REF>
+                                    <VENDOR>${docker.build.label.vendor}</VENDOR>
+                                    <VERSION>${docker.build.label.version}</VERSION>
+                                    <SCHEMA_VERSION>${docker.build.label.schema_version}</SCHEMA_VERSION>
+                                </args>
+                                <dockerFileDir>${project.basedir}/docker/image</dockerFileDir>
+                                <tags>
+                                    <tag>latest</tag>
+                                </tags>
+                            </build>
+                            <run>
+                                <restartPolicy>
+                                    <name>on-failure</name>
+                                    <retry>10</retry>
+                                </restartPolicy>
+                                <namingStrategy>alias</namingStrategy>
+                                <network>
+                                    <mode>custom</mode>
+                                    <name>${docker.network.name}</name>
+                                    <alias>${project.artifactId}</alias>
+                                </network>
+                                <ports>
+                                    <port>8080:80</port>
+                                </ports>
+                            </run>
+                        </image>
+                    </images>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>docker-build</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- end::docker[] -->
+        </plugins>
+    </build>
+</project>
